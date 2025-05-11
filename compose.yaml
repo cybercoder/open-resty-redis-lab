@@ -1,0 +1,25 @@
+services:
+  redis:
+    image: docker.arvancloud.ir/redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+    networks:
+      - openresty_network
+  openresty:
+    image: docker.arvancloud.ir/openresty/openresty:alpine
+    container_name: openresty
+    ports:
+      - "8080:80"
+    volumes:
+      - ./config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+      - ./config/gateway-router.lua:/usr/local/openresty/nginx/lua/gateway-router.lua
+    depends_on:
+      - redis
+    networks:
+      - openresty_network
+networks:
+  openresty_network:
+    driver: bridge
