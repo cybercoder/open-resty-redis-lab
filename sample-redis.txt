@@ -1,6 +1,28 @@
-SET gateway:mycdn.com '{"hostname": "mycdn.com", "protocol": "http", "port": "80"}'
-SET gateway:mycdn.com:httproutes '[{"route": "/", "hostHeader": "example.com", "upstream": "example.com", "protocol": "http", "port": "80"}]'
+Pattern:
 
+key: <host> .e.g. mycdn.com
+value: {fullchain: string, privkey: string, port: number, protocol: http/https, namespace: string, gateway:string}
 
-SET gateway:mycdn1.com '{"hostname": "mycdn1.com", "protocol": "http", "port": "80"}'
-SET gateway:mycdn1.com:httproutes '[{"route": "/", "hostHeader": "footab.ir", "upstream": "footab.ir", "protocol": "https", "port": "443"}]'
+key: httproute:<host>:<route> .e.g. mycdn.com:/*
+value: {
+   lb_method: string # values is one of: rr,least_con,ip_hash,hash
+   upstreams: [
+    {host_header: string, protocol: string, server: string, port: number, weight: number}
+   ]
+}
+
+And IRL redis examples:
+
+SET mycdn.com '{"fullchain": "string", "privkey": "string", "port": 80, "protocol": "http", "namespace": "string", "gateway":"string"}'
+
+SET httproute:mycdn.com:prefix:/ '{"lb_method": "rr", "upstreams": [{"host_header":"example.com","protocol":"http","server":"example.com","port":80, "weight":"1"},{"host_header":"example.com","protocol":"http","server":"96.7.128.198","port":80, "weight":"1"},{"host_header":"example.com","protocol":"http","server":"96.7.128.175","port":80, "weight":"1"},{"host_header":"example.com","protocol":"http","server":"23.192.228.80","port":80, "weight":"1"}]}'
+
+SET httproute:mycdn.com:prefix:/footab/ '{"lb_method": "ip_hash_port", "upstreams": [{"host_header":"footab.ir","protocol":"http","server":"footab.ir","port":80, "weight":"1"}]}'
+
+SET httproute:mycdn.com:prefix:/golabi/ '{"lb_method": "ip_hash_port", "upstreams": [{"host_header":"77.74.202.227","protocol":"http","server":"77.74.202.227","port":80, "weight":"1"}]}'
+
+// another sample
+
+SET mycdn1.com '{"fullchain": "string", "privkey": "string", "port": 80, "protocol": "http", "namespace": "string", "gateway":"string"}'
+
+SET httproute:mycdn1.com:/ '{"lb_method": "rr", "upstreams": [{"host_header":"example.com","protocol":"https","server":"example.com","port":443, "weight":1}]}'
