@@ -83,14 +83,14 @@ if #upstreams == 0 then
     return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 for _, upstream in ipairs(upstreams) do
-    local cached_ip = ngx.shared.dns_cache:get(upstream.server)
+    local cached_ip = ngx.shared.dns_cache:get(upstream.address)
     if not cached_ip then
-        if utils.is_ip(upstream.server) then
-            cached_ip = upstream.server
+        if utils.is_ip(upstream.address) then
+            cached_ip = upstream.address
         else
-            local answers, err = r:query(upstream.server, { qtype = r.TYPE_A })
+            local answers, err = r:query(upstream.address, { qtype = r.TYPE_A })
             if not answers then
-                answers, err = r:query(upstream.server, { qtype = r.TYPE_AAA })
+                answers, err = r:query(upstream.address, { qtype = r.TYPE_AAA })
                 if not answers then
                     ngx.log(ngx.ERR, "DNS query failed: ", err)
                     return ngx.exit(502)
@@ -101,24 +101,21 @@ for _, upstream in ipairs(upstreams) do
                 return ngx.exit(50)
             end
             cached_ip = answers[1].address
-            ngx.shared.dns_cache:set(upstream.server, cached_ip, answers[1].ttl or 300)
+            ngx.shared.dns_cache:set(upstream.address, cached_ip, answers[1].ttl or 300)
         end
     end
     table.insert(upstream_servers,
-        { server = cached_ip, port = upstream.port, host_header = upstream.host_header, protocol = upstream.protocol })
+        { server = cached_ip, port = upstream.port, hostHeader = upstream.hostHeader, protocol = upstream.protocol })
 end
 
 local c = client.get_identifiers()
 
 local chosen_server = lb.ip_port_hash(c.ip, c.port, #upstreams)
-ngx.log(ngx.INFO, "chosen server is: ", chosen_server, "from: ", #upstreams)
 
 ngx.ctx.upstream_server = upstream_servers[chosen_server].server
 ngx.ctx.upstream_port = upstream_servers[chosen_server].port
 ngx.ctx.upstream_protocol = upstream_servers[chosen_server].protocol
-ngx.ctx.custom_host_header = upstream_servers[chosen_server].host_header
+ngx.ctx.custom_host_header = upstream_servers[chosen_server].hostHeader
 
-ngx.var.custom_host_header = upstream_servers[chosen_server].host_header
+ngx.var.custom_host_header = upstream_servers[chosen_server].hostHeader
 ngx.var.custom_scheme = upstream_servers[chosen_server].protocol
-
-ngx.log(ngx.INFO, "client address: ", c.port)

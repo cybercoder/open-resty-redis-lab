@@ -19,6 +19,7 @@ services:
       - ./config/access.lua:/usr/local/openresty/nginx/lua/access.lua
       - ./config/lb.lua:/usr/local/openresty/nginx/lua/lb.lua
       - ./lib:/usr/local/openresty/nginx/lua/lib
+      - ./cache:/disk-cache
     depends_on:
       - redis
     networks:
