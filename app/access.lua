@@ -1,9 +1,8 @@
 local redis = require "resty.redis"
 local cjson = require "cjson.safe"
 local dns = require "resty.dns.resolver"
-local client = require "/usr/local/openresty/nginx/lua/lib/client"
-local lb = require "/usr/local/openresty/nginx/lua/lib/lb"
-local utils = require "/usr/local/openresty/nginx/lua/lib/utils"
+local lb = require "/app/lib/lb"
+local utils = require "/app/lib/utils"
 
 local r, err = dns:new({
     nameservers = { "8.8.8.8", "8.8.4.4" },
@@ -108,7 +107,7 @@ for _, upstream in ipairs(upstreams) do
         { server = cached_ip, port = upstream.port, hostHeader = upstream.hostHeader, protocol = upstream.protocol })
 end
 
-local c = client.get_identifiers()
+local c = utils.get_client_identifiers()
 
 local chosen_server = lb.ip_port_hash(c.ip, c.port, #upstreams)
 

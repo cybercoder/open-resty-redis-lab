@@ -15,10 +15,7 @@ services:
       - "8080:80"
     volumes:
       - ./config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
-      # - ./config/gateway-router.lua:/usr/local/openresty/nginx/lua/gateway-router.lua
-      - ./config/access.lua:/usr/local/openresty/nginx/lua/access.lua
-      - ./config/lb.lua:/usr/local/openresty/nginx/lua/lb.lua
-      - ./lib:/usr/local/openresty/nginx/lua/lib
+      - ./app:/app
       - ./cache:/disk-cache
     depends_on:
       - redis

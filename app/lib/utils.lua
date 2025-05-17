@@ -1,6 +1,19 @@
 local _M = {}
 
+function _M.get_client_identifiers()
+    return {
+        ip = ngx.var.remote_addr,
+        port = tonumber(ngx.var.remote_port) or 0,
+        forwarded_for = ngx.var.http_x_forwarded_for,
+        user_agent = ngx.var.http_user_agent,
+        scheme = ngx.var.scheme
+    }
+end
+
 function _M.is_ip(str)
+    if not str then
+        return false
+    end
     -- Check IPv4 (e.g., "192.168.1.1")
     if str:match("^%d+%.%d+%.%d+%.%d+$") then
         for n in str:gmatch("%d+") do
