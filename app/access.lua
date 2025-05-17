@@ -1,19 +1,9 @@
 local cjson = require "cjson.safe"
-local dns = require "resty.dns.resolver"
+local dns = require "/app/lib/dns"
 local lb = require "/app/lib/lb"
 local utils = require "/app/lib/utils"
 local redis = require "/app/lib/redis"
 
-local r, err = dns:new({
-    nameservers = { "8.8.8.8", "8.8.4.4" },
-    retrans = 5,
-    timeout = 2000
-})
-
-if not r then
-    ngx.log(ngx.ERR, "DNS resolver init failed:", err)
-    return ngx.exit(500)
-end
 local red = redis.connect()
 local host, path = ngx.var.host, ngx.var.uri
 local gateway = red:get(ngx.var.host)
@@ -86,20 +76,9 @@ for _, upstream in ipairs(upstreams) do
         if utils.is_ip(upstream.address) then
             cached_ip = upstream.address
         else
-            local answers, err = r:query(upstream.address, { qtype = r.TYPE_A })
-            if not answers then
-                answers, err = r:query(upstream.address, { qtype = r.TYPE_AAA })
-                if not answers then
-                    ngx.log(ngx.ERR, "DNS query failed: ", err)
-                    return ngx.exit(502)
-                end
-            end
-            if answers.errcode then
-                ngx.log(ngx.ERR, "DNS error: ", answers.errstr)
-                return ngx.exit(50)
-            end
-            cached_ip = answers[1].address
-            ngx.shared.dns_cache:set(upstream.address, cached_ip, answers[1].ttl or 300)
+            local answer = dns.query(upstream.address)
+            cached_ip = answer.address
+            ngx.shared.dns_cache:set(upstream.address, cached_ip, answer.ttl or 300)
         end
     end
     table.insert(upstream_servers,
