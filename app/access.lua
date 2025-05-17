@@ -1,8 +1,8 @@
-local redis = require "resty.redis"
 local cjson = require "cjson.safe"
 local dns = require "resty.dns.resolver"
 local lb = require "/app/lib/lb"
 local utils = require "/app/lib/utils"
+local redis = require "/app/lib/redis"
 
 local r, err = dns:new({
     nameservers = { "8.8.8.8", "8.8.4.4" },
@@ -14,21 +14,11 @@ if not r then
     ngx.log(ngx.ERR, "DNS resolver init failed:", err)
     return ngx.exit(500)
 end
-
-local red = redis:new()
-red:set_timeout(1000)
-
-local ok, err = red:connect("redis", 6379)
-if not ok then
-    ngx.status = 500
-    ngx.say("Redis connection failed: ", err)
-    return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-end
-
+local red = redis.connect()
 local host, path = ngx.var.host, ngx.var.uri
-
 local gateway = red:get(ngx.var.host)
 if not gateway then
+    redis.close()
     ngx.status = 404
     ngx.say("gateway not found.")
     return ngx.exit(ngx.HTTP_NOT_FOUND)
@@ -36,6 +26,7 @@ end
 
 local gateway_data = cjson.decode(gateway)
 if not gateway_data then
+    redis.close()
     ngx.status = 404
     ngx.say("gateway not found")
     return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
@@ -60,10 +51,18 @@ if not route or route == ngx.null then
     end
 end
 
+
+
 if not route or route == ngx.null then
+    redis.close()
     ngx.status = 404
     ngx.say("route not found")
     return ngx.exit(ngx.HTTP_NOT_FOUND)
+end
+
+local ok, error = red:set_keepalive(10000, 100)
+if not ok then
+    ngx.log(ngx.ERR, "Failed to set Redis keepalive: ", error)
 end
 
 local route_data = cjson.decode(route)
