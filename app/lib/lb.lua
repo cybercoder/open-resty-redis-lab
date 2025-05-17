@@ -3,14 +3,6 @@ local bit = require "bit"
 
 local _M = {}
 
---[[
-    Normalizes IP addresses for consistent hashing
-    Handles both IPv4 and IPv6, including:
-    - Lowercase conversion
-    - IPv6 compression removal
-    - IPv4-mapped IPv6 addresses
-    - Removal of non-alphanumeric chars
-]]
 function _M.normalize_ip(ip)
     if not ip or ip == "" then
         return nil, "empty IP address"
@@ -25,25 +17,39 @@ function _M.normalize_ip(ip)
     return normalized
 end
 
---[[
-    IP+Port hash function
-    @param client_ip : string - Client IP address
-    @param client_port : number - Client port
-    @param server_count : number - Number of available servers
-    @return number (1-based server index) or nil, error
-]]
+-- Hash based on IP + Port
 function _M.ip_port_hash(client_ip, client_port, server_count)
     if type(client_ip) ~= "string" or client_ip == "" then
         return nil, "invalid client IP"
     end
 
     local normalized_ip, err = _M.normalize_ip(client_ip)
+    if not normalized_ip then
+        return nil, err
+    end
 
     local hash_key = normalized_ip .. "|" .. tostring(client_port)
+    return _M._hash_to_index(hash_key, server_count)
+end
 
+-- New: Hash based on IP only
+function _M.ip_hash(client_ip, server_count)
+    if type(client_ip) ~= "string" or client_ip == "" then
+        return nil, "invalid client IP"
+    end
+
+    local normalized_ip, err = _M.normalize_ip(client_ip)
+    if not normalized_ip then
+        return nil, err
+    end
+
+    return _M._hash_to_index(normalized_ip, server_count)
+end
+
+-- Internal: Convert hash string to index
+function _M._hash_to_index(key, server_count)
     local sha256 = resty_sha256:new()
-
-    sha256:update(hash_key)
+    sha256:update(key)
     local digest = sha256:final()
     local hash = 0
     for i = 1, 8 do

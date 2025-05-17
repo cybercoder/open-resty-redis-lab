@@ -87,7 +87,7 @@ end
 
 local c = utils.get_client_identifiers()
 
-local chosen_server = lb.ip_port_hash(c.ip, c.port, #upstreams)
+local chosen_server = lb.ip_hash(c.ip, #upstreams)
 
 ngx.ctx.upstream_server = upstream_servers[chosen_server].server
 ngx.ctx.upstream_port = upstream_servers[chosen_server].port
