@@ -4,10 +4,13 @@ local lb = require "/app/lib/lb"
 local utils = require "/app/lib/utils"
 local redis = require "/app/lib/redis"
 local router = require "/app/lib/router"
+local gw = require "/app/lib/gateway"
 
 local red = redis.connect()
 local host, path = ngx.var.host, ngx.var.uri
-local gateway = red:get(ngx.var.host)
+
+local gateway = gw.find(host, red)
+
 if not gateway then
     redis.close(red)
     ngx.status = 404
