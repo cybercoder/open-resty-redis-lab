@@ -3,12 +3,13 @@ local dns = require "/app/lib/dns"
 local lb = require "/app/lib/lb"
 local utils = require "/app/lib/utils"
 local redis = require "/app/lib/redis"
+local router = require "/app/lib/router"
 
 local red = redis.connect()
 local host, path = ngx.var.host, ngx.var.uri
 local gateway = red:get(ngx.var.host)
 if not gateway then
-    redis.close()
+    redis.close(red)
     ngx.status = 404
     ngx.say("gateway not found.")
     return ngx.exit(ngx.HTTP_NOT_FOUND)
@@ -16,44 +17,22 @@ end
 
 local gateway_data = cjson.decode(gateway)
 if not gateway_data then
-    redis.close()
+    redis.close(red)
     ngx.status = 404
     ngx.say("gateway not found")
     return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
 end
 
-local route = red:get("httproute:" .. host .. ":exact:" .. path)
--- local route = red:get("httproute:" .. host .. ":" .. ngx.var.uri)
-if not route or route == ngx.null then
-    local parts = {}
-    for part in path:gmatch("[^/]+") do
-        table.insert(parts, part)
-    end
-    -- Check from longest to shortest prefix (e.g., "/a/b", then "/a", then "/")
-    for i = #parts, 0, -1 do
-        local prefix_path = "/" .. table.concat(parts, "/", 1, i)
-        local prefix_key = "httproute:" .. host .. ":prefix:" .. prefix_path
-        route = red:get(prefix_key)
-
-        if route and route ~= ngx.null then
-            break
-        end
-    end
-end
-
-
+local route = router.findRoute(host, path, red)
 
 if not route or route == ngx.null then
-    redis.close()
+    redis.close(red)
     ngx.status = 404
     ngx.say("route not found")
     return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
-local ok, error = red:set_keepalive(10000, 100)
-if not ok then
-    ngx.log(ngx.ERR, "Failed to set Redis keepalive: ", error)
-end
+redis.close(red)
 
 local route_data = cjson.decode(route)
 if not route_data then

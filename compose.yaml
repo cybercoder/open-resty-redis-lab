@@ -17,6 +17,8 @@ services:
       - ./config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
       - ./app:/app
       - ./cache:/disk-cache
+    environment:
+      - DNS_SERVERS=17.1.1.1
     depends_on:
       - redis
     networks:

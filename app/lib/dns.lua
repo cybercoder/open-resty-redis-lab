@@ -1,5 +1,5 @@
 local dns = require "resty.dns.resolver"
-
+local utils = require "/app/lib/utils"
 local _M = {}
 
 -- _M.resolver = {}
@@ -7,9 +7,9 @@ local _M = {}
 function _M.new()
     if _M.resolver then return _M.resolver end
     local r, err = dns:new({
-        nameservers = { "8.8.8.8", "8.8.4.4" },
-        retrans = 5,
-        timeout = 2000
+        nameservers = utils.getenv("DNS_SERVERS", "8.8.8.8,8.8.4.4"),
+        retrans = utils.getenv("DNS_RETRANS", "5"),
+        timeout = utils.getenv("DNS_TIMEOUT", "2000")
     })
 
     if not r then

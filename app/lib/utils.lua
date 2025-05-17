@@ -31,4 +31,21 @@ function _M.is_ip(str)
     return false
 end
 
+function _M.getenv(key, default)
+    local val = os.getenv(key) or default
+    ngx.log(ngx.INFO, val)
+    -- If the value contains a comma, return a table
+    if val and val:find(",") then
+        local out = {}
+        for v in val:gmatch("[^,%s]+") do
+            table.insert(out, v)
+        end
+        return out
+    end
+    -- Return number if it's a numeric string (optional)
+    local num = tonumber(val)
+    if num then return num end
+    return val
+end
+
 return _M
