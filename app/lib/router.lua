@@ -1,21 +1,21 @@
 local _ROUTER = {}
 
 function _ROUTER.findRoute(host, path, red)
-    local route = _ROUTER._findExactPath(host, path, "cache")
+    local route = _ROUTER._findExactPath(host, path)
     if not route or route == ngx.null then
-        route = _ROUTER._findPrefixPath(host, path, "cache")
+        route = _ROUTER._findPrefixPath(host, path)
     end
     if not route or route == ngx.null then
-        route = _ROUTER._findExactPath(host, path, "redis", red)
+        route = _ROUTER._findExactPath(host, path, red)
         if not route or route == ngx.null then
-            route = _ROUTER._findPrefixPath(host, path, "redis", red)
+            route = _ROUTER._findPrefixPath(host, path, red)
         end
     end
     return route
 end
 
-function _ROUTER._findExactPath(host, path, whereToFind, red)
-    if whereToFind == "cache" then
+function _ROUTER._findExactPath(host, path, red)
+    if not red then
         return ngx.shared.httproute_cache:get("httproute:" .. host .. ":exact:" .. path)
     end
     local route = red:get("httproute:" .. host .. ":exact:" .. path)
@@ -25,7 +25,7 @@ function _ROUTER._findExactPath(host, path, whereToFind, red)
     return route
 end
 
-function _ROUTER._findPrefixPath(host, path, whereToFind, red)
+function _ROUTER._findPrefixPath(host, path, red)
     local parts = {}
     for part in path:gmatch("[^/]+") do
         table.insert(parts, part)
@@ -35,7 +35,7 @@ function _ROUTER._findPrefixPath(host, path, whereToFind, red)
         local prefix_path = "/" .. table.concat(parts, "/", 1, i)
         local prefix_key = "httproute:" .. host .. ":prefix:" .. prefix_path
         local route = ngx.null
-        if whereToFind == "cache" then
+        if not red then
             route = ngx.shared.httproute_cache:get(prefix_key)
         else
             route = red:get(prefix_key)
