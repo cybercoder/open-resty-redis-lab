@@ -18,7 +18,7 @@ services:
       - ./app:/app
       - ./cache:/disk-cache
     environment:
-      - DNS_SERVERS=17.1.1.1
+      - DNS_SERVERS=8.8.4.4,4.2.2.2,8.8.8.8,4.2.2.4
     depends_on:
       - redis
     networks:

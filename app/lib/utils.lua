@@ -33,7 +33,6 @@ end
 
 function _M.getenv(key, default)
     local val = os.getenv(key) or default
-    ngx.log(ngx.INFO, val)
     -- If the value contains a comma, return a table
     if val and val:find(",") then
         local out = {}

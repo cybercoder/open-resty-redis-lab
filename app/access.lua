@@ -8,7 +8,9 @@ local gw = require "/app/lib/gateway"
 
 local red = redis.connect()
 local host, path = ngx.var.host, ngx.var.uri
-
+if not red then
+    ngx.log(ngx.INFO, "No REDIS")
+end
 local gateway = gw.find(host, red)
 
 if not gateway then

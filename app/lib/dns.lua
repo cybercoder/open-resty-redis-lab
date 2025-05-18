@@ -6,6 +6,7 @@ local _M = {}
 
 function _M.new()
     if _M.resolver then return _M.resolver end
+
     local r, err = dns:new({
         nameservers = utils.getenv("DNS_SERVERS", "8.8.8.8,8.8.4.4"),
         retrans = utils.getenv("DNS_RETRANS", "5"),
