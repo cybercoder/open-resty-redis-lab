@@ -2,11 +2,7 @@ local dns = require "resty.dns.resolver"
 local utils = require "/app/lib/utils"
 local _M = {}
 
--- _M.resolver = {}
-
 function _M.new()
-    -- if _M.resolver then return _M.resolver end
-
     local r, err = dns:new({
         nameservers = utils.getenv("DNS_SERVERS", "8.8.8.8,8.8.4.4"),
         retrans = utils.getenv("DNS_RETRANS", "5"),
@@ -17,7 +13,7 @@ function _M.new()
         ngx.log(ngx.ERR, "DNS resolver init failed:", err)
         return ngx.exit(500)
     end
-    -- _M.resolver = r
+    _M.resolver = r
 end
 
 function _M.query(address)
