@@ -9,14 +9,18 @@ function _M.connect()
     local ok, err = red:connect(utils.getenv("REDIS_HOST", "redis"), utils.getenv("REDIS_PORT", "6379"))
     if not ok then
         ngx.status = 500
-        ngx.say("Redis connection failed: ", err)
+        ngx.say(ngx.ERR, "Redis connection failed: ", err)
         return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
     end
-    if not utils.getenv("REDIS_PASSWORD", "") == "" then
-        local res, error = red:auth(utils.getenv("REDIS_PASSWORD", ""))
+    local redis_password = utils.getenv("REDIS_PASSWORD", "")
+
+    if redis_password then
+        ngx.log(ngx.INFO, redis_password)
+        local res, error = red:auth(redis_password)
         if not res then
-            ngx.log(ngx.INFO, "failed to authenticate redis: ", error)
-            return
+            ngx.status = 500
+            ngx.say(ngx.ERR, "failed to authenticate redis: ", error)
+            return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
     end
     return red

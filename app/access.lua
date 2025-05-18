@@ -25,7 +25,7 @@ if not gateway_data then
     redis.close(red)
     ngx.status = 404
     ngx.say("gateway not found")
-    return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+    return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
 local route = router.findRoute(host, path, red)
