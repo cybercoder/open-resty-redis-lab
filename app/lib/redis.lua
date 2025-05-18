@@ -6,7 +6,7 @@ local _M = {}
 function _M.connect()
     local red = redis:new()
     red:set_timeout(utils.getenv("REDIS_TIMEOUT", "1000"))
-    local ok, err = red:connect(utils.getenv("REDIS_HOST", "redis"), utils.getenv("REDIS_HOST", "6379"))
+    local ok, err = red:connect(utils.getenv("REDIS_HOST", "redis"), utils.getenv("REDIS_PORT", "6379"))
     if not ok then
         ngx.status = 500
         ngx.say("Redis connection failed: ", err)
