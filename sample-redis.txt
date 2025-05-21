@@ -15,7 +15,7 @@ And IRL redis examples:
 
 SET mycdn.com '{"fullchain": "string", "privkey": "string", "port": 80, "protocol": "http", "namespace": "string", "gateway":"string"}'
 
-SET httproute:mycdn.com:prefix:/ '{"lb_method": "rr", "upstreams": [{"host_header":"example.com","protocol":"http","server":"example.com","port":80, "weight":"1"},{"host_header":"example.com","protocol":"http","server":"96.7.128.198","port":80, "weight":"1"},{"host_header":"example.com","protocol":"http","server":"96.7.128.175","port":80, "weight":"1"},{"host_header":"example.com","protocol":"http","server":"23.192.228.80","port":80, "weight":"1"}]}'
+SET httproute:mycdn.com:prefix:/ '{"lb_method": "rr", "upstreams": [{"host_header":"example.com","protocol":"http","server":"example.com","port":80, "weight":"2"},{"host_header":"example.com","protocol":"http","server":"96.7.128.198","port":80, "weight":"3"},{"host_header":"example.com","protocol":"http","server":"96.7.128.175","port":80, "weight":"4"},{"host_header":"example.com","protocol":"http","server":"23.192.228.80","port":80, "weight":"5"}]}'
 
 SET httproute:mycdn.com:prefix:/footab/ '{"lb_method": "ip_hash_port", "upstreams": [{"host_header":"footab.ir","protocol":"http","server":"footab.ir","port":80, "weight":"1"}]}'
 

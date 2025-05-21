@@ -71,7 +71,8 @@ end
 
 local c = utils.get_client_identifiers()
 
-local chosen_server = lb.ip_hash(c.ip, #upstreams)
+local chosen_server = lb.ip_hash(c.ip, upstreams)
+
 
 ngx.ctx.upstream_server = upstream_servers[chosen_server].server
 ngx.ctx.upstream_port = upstream_servers[chosen_server].port
@@ -80,3 +81,22 @@ ngx.ctx.custom_host_header = upstream_servers[chosen_server].hostHeader
 
 ngx.var.custom_host_header = upstream_servers[chosen_server].hostHeader
 ngx.var.custom_scheme = upstream_servers[chosen_server].protocol
+
+-- cache settings
+if not route_data.cache then
+    ngx.var.cache_enabled = "off"
+    return
+end
+if route_data.cache.level == "bypass" then
+    ngx.var.cache_enabled = "off"
+    return
+end
+
+if route_data.cache.level == "standard" then
+    ngx.var.cache_enabled = "STATIC"
+end
+ngx.log(ngx.INFO, cjson.encode(route_data.cache))
+
+ngx.ctx.cache_edge_ttl = route_data.cache.edgeTTL or 0
+ngx.ctx.cache_non_success_ttl = route_data.cache.nonSuccessTTL or 0
+ngx.ctx.cache_immutable = route_data.cache.immutable or false

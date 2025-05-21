@@ -1,7 +1,7 @@
 services:
   redis:
     image: docker.arvancloud.ir/redis:7
-    command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+    # command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
     container_name: redis
     ports:
       - "6379:6379"
@@ -22,7 +22,7 @@ services:
       - ./cache:/disk-cache
     environment:
       - DNS_SERVERS=8.8.4.4,8.8.8.8
-      - REDIS_PASSWORD=poorangiscomming
+      - REDIS_PASSWORD=
     depends_on:
       - redis
     networks:

@@ -14,7 +14,7 @@ function _M.connect()
     end
     local redis_password = utils.getenv("REDIS_PASSWORD", "")
 
-    if redis_password then
+    if redis_password and redis_password ~= "" then
         ngx.log(ngx.INFO, redis_password)
         local res, error = red:auth(redis_password)
         if not res then
