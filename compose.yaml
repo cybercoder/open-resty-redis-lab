@@ -1,6 +1,6 @@
 services:
   redis:
-    image: docker.arvancloud.ir/redis:7
+    image: redis:7
     # command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
     container_name: redis
     ports:
@@ -12,7 +12,9 @@ services:
     environment:
       - REDIS_PASSWORD=poorangiscomming
   openresty:
-    image: docker.arvancloud.ir/openresty/openresty:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: openresty
     ports:
       - "8080:80"
