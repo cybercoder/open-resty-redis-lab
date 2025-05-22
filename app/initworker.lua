@@ -1,4 +1,4 @@
-prometheus = require("prometheus").init("prometheus_metrics")
+prometheus = require("prometheus").init("prometheus_metrics", { prefix = "tlscdn" })
 
 metric_requests = prometheus:counter(
     "nginx_http_requests_total", "Number of HTTP requests", { "host", "status" })
