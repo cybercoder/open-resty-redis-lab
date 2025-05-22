@@ -28,6 +28,10 @@ if not gateway_data then
     return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
+-- Store namespace and cdn_gateway for metrics
+ngx.ctx.namespace = gateway_data.namespace or "default"
+ngx.ctx.cdn_gateway = gateway_data.name or "default"
+
 local route = router.findRoute(host, path, red)
 
 if not route or route == ngx.null then
