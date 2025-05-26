@@ -9,8 +9,6 @@ services:
       - ./redis/data:/data
     networks:
       - openresty_network
-    environment:
-      - REDIS_PASSWORD=poorangiscomming
   openresty:
     build:
       context: .
@@ -19,7 +17,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./config/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+      - ./config/nginx.conf.dev:/usr/local/openresty/nginx/conf/nginx.conf
       - ./app:/app
       - ./cache:/disk-cache
     environment:

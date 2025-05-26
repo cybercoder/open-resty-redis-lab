@@ -1,0 +1,74 @@
+worker_processes 1;
+events { worker_connections 1024; }
+
+env DNS_SERVERS;
+env DNS_RETRANS;
+env DNS_TIMEOUT;
+env REDIS_HOST;
+env REDIS_PASSWORD;
+env REDIS_DB;
+
+http {
+
+    lua_shared_dict prometheus_metrics 30M;
+    init_worker_by_lua_file /app/initworker.lua;
+    log_by_lua_file /app/log.lua;
+
+    upstream backend {
+        server 0.0.0.0;
+        balancer_by_lua_file /app/lb.lua;
+    }
+    error_log /dev/stderr debug;
+    resolver 127.0.0.11:53 ipv6=off;
+
+    lua_shared_dict dns_cache 10m;
+    lua_shared_dict gateway_cache 10m;
+    lua_shared_dict httproute_cache 10m;
+
+    server_tokens off;
+    more_clear_headers Server;
+    more_set_headers 'CDN: tlscdn.ir';
+
+    proxy_cache_path /disk-cache levels=1:2 keys_zone=STATIC:100m inactive=7d max_size=10g;
+
+    server {
+        listen 80;
+        # listen 443 ssl;
+        #server_name localhost;
+
+        # ssl_certificate /app/tls/tls.crt;
+        # ssl_certificate_key /app/tls/tls.key;
+
+        location / {
+            set $custom_host_header $host;
+            set $custom_scheme $scheme;
+            set $cache_enabled off;
+            access_by_lua_file /app/access.lua;
+
+            proxy_cache $cache_enabled;
+
+            proxy_set_header Host $custom_host_header;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_ssl_server_name on;
+            proxy_pass $custom_scheme://backend;
+
+            header_filter_by_lua_file /app/headers.lua;
+            add_header X-Cache-Status $upstream_cache_status;
+        }
+    }
+
+    server {
+        listen 9145;
+        
+        location /metrics {
+            content_by_lua_block {
+                metric_connections:set(ngx.var.connections_reading, {"reading", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default"})
+                metric_connections:set(ngx.var.connections_waiting, {"waiting", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default"})
+                metric_connections:set(ngx.var.connections_writing, {"writing", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default"})
+                prometheus:collect()
+            }
+        }
+    }
+}
