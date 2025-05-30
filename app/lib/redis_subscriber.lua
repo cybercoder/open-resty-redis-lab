@@ -2,12 +2,12 @@ local redis_conn = require "/app/lib/redis"
 local ngx = ngx
 
 local _M = {}
-local subscribers = {}
 
 function _M.new()
     local self = {
         gateway_cache = ngx.shared.gateway_cache,
         httproute_cache = ngx.shared.httproute_cache,
+        cert_cache = ngx.shared.cert_cache,
         running = false
     }
     return setmetatable(self, { __index = _M })
@@ -15,16 +15,16 @@ end
 
 function _M.start(self)
     if self.running then return true end
-    
+
     local ok, err = ngx.timer.at(0, function()
         self:_run_loop()
     end)
-    
+
     if not ok then
         ngx.log(ngx.ERR, "failed to create subscriber timer: ", err)
         return nil, err
     end
-    
+
     self.running = true
     return true
 end
@@ -38,13 +38,13 @@ function _M._run_loop(self)
     end
 
     -- Set longer timeout for subscriber
-    red:set_timeout(60000)  -- 60 seconds for subscriber
+    red:set_timeout(60000) -- 60 seconds for subscriber
 
-    local channels = {"invalidate_gateway_cache", "invalidate_httproute_cache"}
+    local channels = { "invalidate_gateway_cache", "invalidate_httproute_cache" }
     local res, err = red:subscribe(unpack(channels))
     if not res then
         ngx.log(ngx.ERR, "failed to subscribe: ", err)
-        red:close()  -- Use close() instead of keepalive for failed subscription
+        red:close() -- Use close() instead of keepalive for failed subscription
         ngx.timer.at(5, function() self:_run_loop() end)
         return
     end
@@ -58,16 +58,16 @@ function _M._run_loop(self)
         local res, err = red:read_reply()
         if not res then
             -- Check if we've gone too long without messages
-            if ngx.now() - last_message_time > 30 then  -- 30 seconds without messages
+            if ngx.now() - last_message_time > 30 then -- 30 seconds without messages
                 ngx.log(ngx.WARN, "No messages received in 30 seconds, reconnecting...")
                 break
             end
-            
+
             if err ~= "timeout" then
                 ngx.log(ngx.ERR, "failed to read reply: ", err)
                 break
             end
-            
+
             -- For timeout, just continue the loop
             ngx.log(ngx.DEBUG, "read_reply timeout, continuing...")
             goto continue
@@ -83,6 +83,9 @@ function _M._run_loop(self)
             elseif channel == "invalidate_httproute_cache" then
                 self.httproute_cache:delete(key)
                 ngx.log(ngx.INFO, "invalidated httproute_cache key: ", key)
+            elseif channel == "invalidate_cert_cache" then
+                self.cert_cache:delete(key)
+                ngx.log(ngx.INFO, "invalidated cert cahe key: ", key)
             end
         end
 
@@ -90,9 +93,9 @@ function _M._run_loop(self)
     end
 
     -- Cleanup and reconnect
-    pcall(function() 
+    pcall(function()
         red:unsubscribe(unpack(channels))
-        red:close()  -- Must use close() for subscribed connections
+        red:close() -- Must use close() for subscribed connections
     end)
     ngx.timer.at(1, function() self:_run_loop() end)
 end

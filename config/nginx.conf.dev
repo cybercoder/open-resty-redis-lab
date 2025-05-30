@@ -39,6 +39,8 @@ http {
         # ssl_certificate /app/tls/tls.crt;
         # ssl_certificate_key /app/tls/tls.key;
 
+        ssl_certificate_by_lua_file /app/ssl.lua;
+
         location / {
             set $custom_host_header $host;
             set $custom_scheme $scheme;
@@ -48,6 +50,8 @@ http {
             proxy_cache $cache_enabled;
 
             proxy_set_header Host $custom_host_header;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
@@ -61,7 +65,7 @@ http {
 
     server {
         listen 9145;
-        
+
         location /metrics {
             content_by_lua_block {
                 metric_connections:set(ngx.var.connections_reading, {"reading", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default"})
