@@ -24,6 +24,7 @@ http {
     lua_shared_dict dns_cache 10m;
     lua_shared_dict gateway_cache 10m;
     lua_shared_dict httproute_cache 10m;
+    lua_shared_dict cert_cache 10m;
 
     server_tokens off;
     more_clear_headers Server;
