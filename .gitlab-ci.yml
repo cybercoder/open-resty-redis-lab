@@ -4,21 +4,20 @@ default:
     - name: docker:dind
       command:
         - --tls=false
-        # - --registry-mirror=https://registry.ik8s.ir
-        # - --insecure-registry=registry.ik8s.ir
+        - --registry-mirror=https://registry.ik8s.ir
+        - --insecure-registry=registry.ik8s.ir
   before_script:
-    - echo nameserver=87.107.110.110 > /etc/resolv.conf
-    # - mkdir -p ~/.docker
-    # - |
-    #   cat > ~/.docker/config.json <<EOF
-    #   {
-    #     "auths": {
-    #       "registry.ik8s.ir": {
-    #         "auth": "$(echo -n "malek:rizabadibayandor" | base64)"
-    #       }
-    #     }
-    #   }
-    #   EOF
+    - mkdir -p ~/.docker
+    - |
+      cat > ~/.docker/config.json <<EOF
+      {
+        "auths": {
+          "registry.ik8s.ir": {
+            "auth": "$(echo -n "malek:rizabadibayandor" | base64)"
+          }
+        }
+      }
+      EOF
 variables:
   DOCKER_TLS_CERTDIR: ''
   DOCKER_HOST: tcp://docker:2375
