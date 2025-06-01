@@ -7,7 +7,8 @@ function _M.new()
     local self = {
         gateway_cache = ngx.shared.gateway_cache,
         httproute_cache = ngx.shared.httproute_cache,
-        cert_cache = ngx.shared.cert_cache,
+        tls_crt_cache = ngx.shared.tls_crt_cache,
+        tls_key_cache = ngx.shared.tls_key_cache,
         running = false
     }
     return setmetatable(self, { __index = _M })
@@ -84,8 +85,10 @@ function _M._run_loop(self)
                 self.httproute_cache:delete(key)
                 ngx.log(ngx.INFO, "invalidated httproute_cache key: ", key)
             elseif channel == "invalidate_cert_cache" then
-                self.cert_cache:delete(key)
-                ngx.log(ngx.INFO, "invalidated cert cahe key: ", key)
+                self.tls_crt_cache:delete(key)
+                ngx.log(ngx.INFO, "invalidated tls crt cache:", key)
+                self.tls_key_cache:delete(key)
+                ngx.log(ngx.INFO, "invalidated tls key cache: ", key)
             end
         end
 
