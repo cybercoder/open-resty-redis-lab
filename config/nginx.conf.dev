@@ -24,7 +24,8 @@ http {
     lua_shared_dict dns_cache 10m;
     lua_shared_dict gateway_cache 10m;
     lua_shared_dict httproute_cache 10m;
-    lua_shared_dict cert_cache 10m;
+    lua_shared_dict tls_crt_cache 10m;
+    lua_shared_dict tls_key_cache 10m;
 
     server_tokens off;
     more_clear_headers Server;
@@ -34,13 +35,11 @@ http {
 
     server {
         listen 80;
-        listen 443 ssl;
-        #server_name localhost;
+        #listen 443 ssl;
 
-        # ssl_certificate /app/tls/tls.crt;
-        # ssl_certificate_key /app/tls/tls.key;
-
-        ssl_certificate_by_lua_file /app/ssl.lua;
+        #ssl_certificate /app/tls/tls.crt;
+        #ssl_certificate_key /app/tls/tls.key;
+        #ssl_certificate_by_lua_file /app/ssl.lua;
 
         location / {
             set $custom_host_header $host;
@@ -50,9 +49,10 @@ http {
 
             proxy_cache $cache_enabled;
 
-            proxy_set_header Host $custom_host_header;
             proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Connection "upgrade";
+
+            proxy_set_header Host $custom_host_header;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
