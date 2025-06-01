@@ -95,6 +95,7 @@ function _M._run_loop(self)
                 if not tlsData then
                     ngx.log(ngx.INFO, "Invalid tls crt.", key)
                 else
+                    ngx.log(ngx.DEBUG, tlsData)
                     self.tls_crt_cache:set(tlsData.hostname, tlsData.crt)
                     self.tls_key_cache:set(tlsData.hostname, tlsData.key)
                     -- write to a file for next reload
