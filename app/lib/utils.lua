@@ -47,4 +47,12 @@ function _M.getenv(key, default)
     return val
 end
 
+function _M.read_file(path)
+    local file = io.open(path, "rb")
+    if not file then return nil end
+    local content = file:read("*a")
+    file:close()
+    return content
+end
+
 return _M
