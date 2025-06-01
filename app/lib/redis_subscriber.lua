@@ -42,7 +42,7 @@ function _M._run_loop(self)
     -- Set longer timeout for subscriber
     red:set_timeout(60000) -- 60 seconds for subscriber
 
-    local channels = { "invalidate_gateway_cache", "invalidate_httproute_cache" }
+    local channels = { "invalidate_gateway_cache", "invalidate_httproute_cache", "new_cert" }
     local res, err = red:subscribe(unpack(channels))
     if not res then
         ngx.log(ngx.ERR, "failed to subscribe: ", err)
@@ -95,7 +95,6 @@ function _M._run_loop(self)
                 if not tlsData then
                     ngx.log(ngx.INFO, "Invalid tls crt.", key)
                 else
-                    ngx.log(ngx.DEBUG, tlsData)
                     self.tls_crt_cache:set(tlsData.hostname, tlsData.crt)
                     self.tls_key_cache:set(tlsData.hostname, tlsData.key)
                     -- write to a file for next reload
