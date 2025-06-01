@@ -1,3 +1,4 @@
+local cjson = require "cjson.safe"
 local redis_conn = require "/app/lib/redis"
 local ngx = ngx
 
@@ -89,6 +90,15 @@ function _M._run_loop(self)
                 ngx.log(ngx.INFO, "invalidated tls crt cache:", key)
                 self.tls_key_cache:delete(key)
                 ngx.log(ngx.INFO, "invalidated tls key cache: ", key)
+            elseif channel == "new_cert" then
+                local tlsData = cjson.decode(key)
+                if not tlsData then
+                    ngx.log(ngx.INFO, "Invalid tls crt.", key)
+                else
+                    self.tls_crt_cache:set(tlsData.hostname, tlsData.crt)
+                    self.tls_key_cache:set(tlsData.hostname, tlsData.key)
+                    -- write to a file for next reload
+                end
             end
         end
 

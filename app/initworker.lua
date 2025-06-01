@@ -1,3 +1,4 @@
+local utils = require("/app/lib/utils")
 prometheus = require("prometheus").init("prometheus_metrics", { prefix = "tlscdn_" })
 
 metric_requests = prometheus:counter(
@@ -21,3 +22,10 @@ else
         ngx.log(ngx.INFO, "Redis cache invalidation subscriber started successfully")
     end
 end
+
+-- Load Default Certificate to cache
+local tls_crt = utils.read_file("/app/tls/tls.crt")
+local tls_key = utils.read_file("/app/tls/tls.key")
+
+ngx.shared.tls_crt_cache:set("DEFAULT", tls_crt)
+ngx.shared.tls_key_cache:set("DEFAULT", tls_key)
