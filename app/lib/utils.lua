@@ -55,4 +55,13 @@ function _M.read_file(path)
     return content
 end
 
+function _M.writeToFile(filename, content)
+    local file = io.open(filename, "w") -- "w" mode overwrites the file or creates a new one
+    if not file then
+        error("Could not open file " .. filename .. " for writing.")
+    end
+    file:write(content)
+    file:close()
+end
+
 return _M

@@ -97,7 +97,6 @@ function _M._run_loop(self)
                 else
                     self.tls_crt_cache:set(tlsData.hostname, tlsData.crt)
                     self.tls_key_cache:set(tlsData.hostname, tlsData.key)
-                    -- write to a file for next reload
                 end
             end
         end
