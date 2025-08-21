@@ -12,7 +12,7 @@ services:
   openresty:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: openresty
     ports:
       - "8080:80"
@@ -23,6 +23,7 @@ services:
     environment:
       - DNS_SERVERS=8.8.4.4,8.8.8.8
       - REDIS_PASSWORD=
+      - WAF_ENDPOINT=http://192.168.251.10:3000
     depends_on:
       - redis
     networks:
