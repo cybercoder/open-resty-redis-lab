@@ -5,6 +5,7 @@ local utils = require "/app/lib/utils"
 local redis = require "/app/lib/redis"
 local router = require "/app/lib/router"
 local gw = require "/app/lib/gateway"
+local http = require "resty.http"
 
 local red = redis.connect()
 local host, path = ngx.var.host, ngx.var.uri
@@ -31,6 +32,27 @@ end
 -- Store namespace and cdn_gateway for metrics
 ngx.ctx.namespace = gateway_data.namespace or "default"
 ngx.ctx.cdn_gateway = gateway_data.name or "default"
+
+-- WAF
+if gateway_data.waf_enabled then
+    local httpc = http.new()
+    local headers = ngx.req.get_headers()
+    local client_ip = headers["X-Real-IP"] or headers["X-Forwarded-For"] or ngx.var.remote_addr
+    headers["x-tlscdn-waf-Profile"] = ngx.ctx.namespace .. ":" .. ngx.ctx.cdn_gateway
+    headers["x-tlscdn-waf-Request-Uri"] = ngx.var.request_uri -- Add URI to headers
+    headers["x-tlscdn-waf-Client-IP"] = client_ip
+    headers["x-tlscdn-waf-Method"] = ngx.var.request_method
+    headers["x-tlscdn-waf-Query-String"] = ngx.var.query_string or ""
+    local res, _ = httpc:request_uri(utils.getenv("WAF_ENDPOINT", "http://192.168.251.10:3000") .. "/pre", {
+        method = "POST",
+        headers = headers,
+        body = nil,
+    })
+    if res.status ~= 200 then
+        return ngx.exit(res.status)
+    end
+end
+-- END OF WAF
 
 local route = router.findRoute(host, path, red)
 
