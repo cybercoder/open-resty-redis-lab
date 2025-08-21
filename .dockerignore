@@ -1,0 +1,5 @@
+cache
+waf
+redis
+compose.yml
+*.txt
