@@ -45,12 +45,13 @@ if gateway_data.waf_enabled then
     headers["x-tlscdn-waf-Query-String"] = ngx.var.query_string or ""
 
 
-    local res, _ = httpc:request_uri(utils.getenv("WAF_ENDPOINT", "http://tlscdn-waf:80") .. "/pre", {
+    local res, err = httpc:request_uri(utils.getenv("WAF_ENDPOINT", "http://tlscdn-waf:80") .. "/pre", {
         method = "POST",
         headers = headers,
         body = nil,
     })
     if res.status ~= 200 then
+        ngx.log(ngx.ERR, "WAF request failed: ", err)
         return ngx.exit(res.status)
     end
 end
