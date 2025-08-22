@@ -32,18 +32,36 @@ function _M.is_ip(str)
 end
 
 function _M.getenv(key, default)
-    local val = os.getenv(key) or default
+    local val = os.getenv(key)
+
+    -- Handle nil case
+    if val == nil then
+        return default
+    end
+
+    -- Handle empty string case (optional - depends on your needs)
+    if val == "" then
+        return default
+    end
+
     -- If the value contains a comma, return a table
-    if val and val:find(",") then
+    if val:find(",") then
         local out = {}
-        for v in val:gmatch("[^,%s]+") do
-            table.insert(out, v)
+        for v in val:gmatch("([^,]+)") do
+            -- Trim whitespace if desired
+            local trimmed = v:match("^%s*(.-)%s*$")
+            table.insert(out, trimmed)
         end
         return out
     end
-    -- Return number if it's a numeric string (optional)
+
+    -- Optional: Add a flag to control number conversion
+    -- For now, let's keep it as string unless explicitly numeric
     local num = tonumber(val)
-    if num then return num end
+    if num and tostring(num) == val then -- Ensure it's a pure numeric string
+        return num
+    end
+
     return val
 end
 
