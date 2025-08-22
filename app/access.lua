@@ -43,7 +43,9 @@ if gateway_data.waf_enabled then
     headers["x-tlscdn-waf-Client-IP"] = client_ip
     headers["x-tlscdn-waf-Method"] = ngx.var.request_method
     headers["x-tlscdn-waf-Query-String"] = ngx.var.query_string or ""
-    local res, _ = httpc:request_uri(utils.getenv("WAF_ENDPOINT", "http://192.168.251.10:3000") .. "/pre", {
+
+
+    local res, _ = httpc:request_uri(utils.getenv("WAF_ENDPOINT", "http://tlscdn-waf:80") .. "/pre", {
         method = "POST",
         headers = headers,
         body = nil,
