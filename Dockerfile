@@ -4,7 +4,8 @@ COPY nginx-lua-prometheus-0.20240525-1.rockspec /tmp/
 
 RUN apt update && apt install -y git luarocks && \
     luarocks install /tmp/nginx-lua-prometheus-0.20240525-1.rockspec && \
-    luarocks install lua-resty-http
+    luarocks install lua-resty-http && \
+    luarocks install lua-resty-openssl
 
 COPY app /app
 COPY config/nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
