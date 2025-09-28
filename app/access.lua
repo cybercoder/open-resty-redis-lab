@@ -89,7 +89,15 @@ for _, upstream in ipairs(upstreams) do
         if utils.is_ip(upstream.address) then
             cached_ip = upstream.address
         else
-            local answer = dns.query(upstream.address)
+            local answer, err = dns.query(upstream.address)
+            if not answer then
+                ngx.log(ngx.ERR, "DNS resolution failed for ", upstream.address, ": ", err)
+                metric_dns_queries:inc(1, { "failed", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default" })
+                ngx.status = 502
+                ngx.say("DNS resolution failed")
+                return ngx.exit(ngx.HTTP_BAD_GATEWAY)
+            end
+            metric_dns_queries:inc(1, { "success", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default" })
             cached_ip = answer.address
             ngx.shared.dns_cache:set(upstream.address, cached_ip, answer.ttl or 300)
         end

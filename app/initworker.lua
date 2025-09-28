@@ -14,7 +14,17 @@ metric_url_requests = prometheus:counter(
 metric_cache_status = prometheus:counter(
     "nginx_http_cache_status_total", "Number of HTTP requests by cache status",
     { "host", "status", "cdn_namespace", "cdn_gateway" })
+metric_dns_queries = prometheus:counter(
+    "nginx_dns_queries_total", "Number of DNS queries",
+    { "status", "cdn_namespace", "cdn_gateway" })
 
+
+-- Initialize DNS resolver once per worker
+local dns = require "/app/lib/dns"
+local ok, err = dns.init_resolver()
+if not ok then
+    ngx.log(ngx.ERR, "Failed to initialize DNS resolver: ", err)
+end
 
 -- Initialize Redis Subscriber for cache invalidation
 local subscriber_ok, subscriber = pcall(require, "/app/lib/redis_subscriber")
