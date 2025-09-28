@@ -8,6 +8,12 @@ metric_latency = prometheus:histogram(
     "nginx_http_request_duration_seconds", "HTTP request latency", { "host", "cdn_namespace", "cdn_gateway" })
 metric_connections = prometheus:gauge(
     "nginx_http_connections", "Number of HTTP connections", { "state", "cdn_namespace", "cdn_gateway" })
+metric_url_requests = prometheus:counter(
+    "nginx_http_url_requests_total", "Number of HTTP requests by URL",
+    { "host", "method", "uri", "cache_status", "cdn_namespace", "cdn_gateway" })
+metric_cache_status = prometheus:counter(
+    "nginx_http_cache_status_total", "Number of HTTP requests by cache status",
+    { "host", "status", "cdn_namespace", "cdn_gateway" })
 
 
 -- Initialize Redis Subscriber for cache invalidation
