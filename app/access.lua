@@ -91,11 +91,18 @@ for _, upstream in ipairs(upstreams) do
         else
             local answer, err = dns.query(upstream.address)
             if not answer then
-                ngx.log(ngx.ERR, "DNS resolution failed for ", upstream.address, ": ", err)
+                ngx.log(ngx.ERR, "DNS resolution failed for ", upstream.address, ": ", err or "unknown error")
                 metric_dns_queries:inc(1, { "failed", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default" })
-                ngx.status = 502
-                ngx.say("DNS resolution failed")
-                return ngx.exit(ngx.HTTP_BAD_GATEWAY)
+
+                -- Check if we should skip this upstream or fail entirely
+                if #upstreams > 1 then
+                    ngx.log(ngx.WARN, "Skipping failed upstream ", upstream.address, ", trying others")
+                    goto continue_upstream
+                else
+                    ngx.status = 502
+                    ngx.say("DNS resolution failed for all upstreams")
+                    return ngx.exit(ngx.HTTP_BAD_GATEWAY)
+                end
             end
             metric_dns_queries:inc(1, { "success", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default" })
             cached_ip = answer.address
@@ -104,11 +111,20 @@ for _, upstream in ipairs(upstreams) do
     end
     table.insert(upstream_servers,
         { server = cached_ip, port = upstream.port, hostHeader = upstream.hostHeader, protocol = upstream.protocol })
+
+    ::continue_upstream::
+end
+
+-- Check if we have any valid upstream servers after DNS resolution
+if #upstream_servers == 0 then
+    ngx.status = 502
+    ngx.say("No valid upstream servers available")
+    return ngx.exit(ngx.HTTP_BAD_GATEWAY)
 end
 
 local c = utils.get_client_identifiers()
 
-local chosen_server = lb.ip_hash(c.ip, upstreams)
+local chosen_server = lb.ip_hash(c.ip, upstream_servers)
 
 
 ngx.ctx.upstream_server = upstream_servers[chosen_server].server
