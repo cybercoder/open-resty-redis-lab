@@ -3,7 +3,8 @@ local redis = require "/app/lib/redis"
 prometheus = require("prometheus").init("prometheus_metrics", { prefix = "tlscdn_" })
 
 metric_requests = prometheus:counter(
-    "nginx_http_requests_total", "Number of HTTP requests", { "host", "status", "cdn_namespace", "cdn_gateway" })
+    "nginx_http_requests_total", "Number of HTTP requests",
+    { "host", "method", "uri", "cache_status", "status", "cdn_namespace", "cdn_gateway" })
 metric_latency = prometheus:histogram(
     "nginx_http_request_duration_seconds", "HTTP request latency", { "host", "cdn_namespace", "cdn_gateway" })
 metric_connections = prometheus:gauge(
@@ -20,11 +21,11 @@ metric_dns_queries = prometheus:counter(
 
 
 -- Initialize DNS resolver once per worker
-local dns = require "/app/lib/dns"
-local ok, err = dns.init_resolver()
-if not ok then
-    ngx.log(ngx.ERR, "Failed to initialize DNS resolver: ", err)
-end
+-- local dns = require "/app/lib/dns"
+-- local ok, err = dns.init_resolver()
+-- if not ok then
+--     ngx.log(ngx.ERR, "Failed to initialize DNS resolver: ", err)
+-- end
 
 -- Initialize Redis Subscriber for cache invalidation
 local subscriber_ok, subscriber = pcall(require, "/app/lib/redis_subscriber")

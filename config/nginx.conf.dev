@@ -26,6 +26,7 @@ http {
     lua_shared_dict httproute_cache 10m;
     lua_shared_dict tls_crt_cache 10m;
     lua_shared_dict tls_key_cache 10m;
+    lua_shared_dict waf_rules_cache 10m;
 
     server_tokens off;
     more_clear_headers Server;

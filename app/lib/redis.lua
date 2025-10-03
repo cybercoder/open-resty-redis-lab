@@ -6,9 +6,9 @@ local _M = {}
 function _M.connect()
     local red = redis:new()
     red:set_timeout(utils.getenv("REDIS_TIMEOUT", "1000"))
-    
-    local ok, err = red:connect(utils.getenv("REDIS_HOST", "redis"), 
-                      utils.getenv("REDIS_PORT", "6379"))
+
+    local ok, err = red:connect(utils.getenv("REDIS_HOST", "redis"),
+        utils.getenv("REDIS_PORT", "6379"))
     if not ok then
         ngx.log(ngx.ERR, "Redis connection failed: ", err)
         return nil, err
@@ -23,14 +23,14 @@ function _M.connect()
             return nil, err
         end
     end
-    
+
     return red
 end
 
 function _M.close(red)
     -- Check if connection is in subscribed state
-    local subscribed = red:get_reused_times() == -1  -- -1 indicates subscribed state
-    
+    local subscribed = red:get_reused_times() == -1 -- -1 indicates subscribed state
+
     if subscribed then
         -- Can't use keepalive for subscribed connections
         local ok, err = red:close()

@@ -34,27 +34,12 @@ ngx.ctx.namespace = gateway_data.namespace or "default"
 ngx.ctx.cdn_gateway = gateway_data.name or "default"
 
 -- WAF
-if gateway_data.waf_enabled then
-    local httpc = http.new()
-    local headers = ngx.req.get_headers()
-    local client_ip = headers["X-Real-IP"] or headers["X-Forwarded-For"] or ngx.var.remote_addr
-    headers["x-tlscdn-waf-Profile"] = ngx.ctx.namespace .. ":" .. ngx.ctx.cdn_gateway
-    headers["x-tlscdn-waf-Request-Uri"] = ngx.var.request_uri -- Add URI to headers
-    headers["x-tlscdn-waf-Client-IP"] = client_ip
-    headers["x-tlscdn-waf-Method"] = ngx.var.request_method
-    headers["x-tlscdn-waf-Query-String"] = ngx.var.query_string or ""
-
-
-    local res, err = httpc:request_uri(utils.getenv("WAF_ENDPOINT", "http://tlscdn-waf:80") .. "/pre", {
-        method = "POST",
-        headers = headers,
-        body = nil,
-    })
-    if res.status ~= 200 then
-        ngx.log(ngx.ERR, "WAF request failed: ", err)
-        return ngx.exit(res.status)
-    end
+-- if gateway_data.waf_enabled then
+local waf = require "/app/waf/init"
+if not waf.process(red) then
+    return -- Request was blocked
 end
+-- end
 -- END OF WAF
 
 local route = router.findRoute(host, path, red)
