@@ -9,7 +9,6 @@ env REDIS_PASSWORD;
 env REDIS_DB;
 
 http {
-
     lua_shared_dict prometheus_metrics 30M;
     init_worker_by_lua_file /app/initworker.lua;
     log_by_lua_file /app/log.lua;

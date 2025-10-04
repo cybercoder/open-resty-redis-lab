@@ -25,7 +25,7 @@ local gateway_data = cjson.decode(gateway)
 if not gateway_data then
     redis.close(red)
     ngx.status = 404
-    ngx.say("gateway not found")
+    ngx.say("gateway not found.")
     return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
@@ -34,20 +34,20 @@ ngx.ctx.namespace = gateway_data.namespace or "default"
 ngx.ctx.cdn_gateway = gateway_data.name or "default"
 
 -- WAF
-if gateway_data.waf_enabled then
-    local waf = require "/app/waf/init"
-    if not waf.process(red) then
-        return -- Request was blocked
-    end
+-- if gateway_data.waf_enabled then
+local waf = require "/app/waf/init"
+if not waf.process(red) then
+    return -- Request was blocked
 end
+-- end
 -- END OF WAF
-
+ngx.log(ngx.DEBUG, "Accessing route:", host, " path:", path)
 local route = router.findRoute(host, path, red)
 
 if not route or route == ngx.null then
     redis.close(red)
     ngx.status = 404
-    ngx.say("route not found")
+    ngx.say("route not found.")
     return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
@@ -85,7 +85,7 @@ for _, upstream in ipairs(upstreams) do
                     goto continue_upstream
                 else
                     ngx.status = 502
-                    ngx.say("DNS resolution failed for all upstreams")
+                    ngx.say("DNS resolution failed for all upstreams.")
                     return ngx.exit(ngx.HTTP_BAD_GATEWAY)
                 end
             end
@@ -103,7 +103,7 @@ end
 -- Check if we have any valid upstream servers after DNS resolution
 if #upstream_servers == 0 then
     ngx.status = 502
-    ngx.say("No valid upstream servers available")
+    ngx.say("No valid upstream servers available.")
     return ngx.exit(ngx.HTTP_BAD_GATEWAY)
 end
 

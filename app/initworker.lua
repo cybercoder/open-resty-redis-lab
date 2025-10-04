@@ -1,5 +1,6 @@
 local utils = require "/app/lib/utils"
 local redis = require "/app/lib/redis"
+
 prometheus = require("prometheus").init("prometheus_metrics", { prefix = "tlscdn_" })
 
 metric_requests = prometheus:counter(

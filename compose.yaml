@@ -20,6 +20,7 @@ services:
       - ./config/nginx.conf.dev:/usr/local/openresty/nginx/conf/nginx.conf
       - ./app:/app
       - ./cache:/disk-cache
+      - ./maxminddb:/maxminddb
     environment:
       - DNS_SERVERS=8.8.4.4,8.8.8.8
       - REDIS_PASSWORD=
