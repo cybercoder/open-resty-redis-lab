@@ -1,5 +1,4 @@
 redis
 cache
-.DS_Store
-waf
+.DS_Stores
 maxminddb

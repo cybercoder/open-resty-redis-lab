@@ -1,10 +1,7 @@
-FROM openresty/openresty:1.27.1.2-4-bookworm-fat
-COPY nginx-lua-prometheus-0.20240525-1.rockspec /tmp/
+FROM openresty/openresty:1.27.1.2-4-alpine-slim-amd64
 
-RUN apt update && apt install -y git luarocks perl libmaxminddb0 libmaxminddb-dev mmdb-bin && \
-    luarocks install /tmp/nginx-lua-prometheus-0.20240525-1.rockspec && \
-    luarocks install lua-resty-http && \
-    luarocks install lua-resty-openssl && \
-    opm get anjia0532/lua-resty-maxminddb
-RUN ldconfig
+RUN apk --no-cache add perl libmaxminddb && ln -s /usr/lib/libmaxminddb.so.0  /usr/lib/libmaxminddb.so
+RUN opm get anjia0532/lua-resty-maxminddb && \
+    opm get knyar/nginx-lua-prometheus && \
+    opm get fffonion/lua-resty-openssl
 COPY app /app

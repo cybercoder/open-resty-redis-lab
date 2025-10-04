@@ -5,7 +5,6 @@ local utils = require "/app/lib/utils"
 local redis = require "/app/lib/redis"
 local router = require "/app/lib/router"
 local gw = require "/app/lib/gateway"
-local http = require "resty.http"
 
 local red = redis.connect()
 local host, path = ngx.var.host, ngx.var.uri
