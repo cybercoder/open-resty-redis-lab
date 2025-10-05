@@ -25,10 +25,12 @@ _M.operators = {
 
     -- Collections
     In = function(value, pattern)
-        if not value or type(pattern) ~= "table" then return false end
-        local value_str = tostring(value)
-        for _, item in ipairs(pattern) do
-            if value_str == tostring(item) then return true end
+        if not value then return false end
+        for item in string.gmatch(pattern, '([^,]+)') do
+            ngx.log(ngx.DEBUG, 'item: ', item)
+            if tostring(value) == tostring(item) then
+                return true
+            end
         end
         return false
     end,

@@ -22,10 +22,9 @@ _M.parameters = {
         else
             ngx.log(ngx.INFO, "GeoLite2-Country.mmdb is already initialized")
         end
-        local res, err = geo.lookup(ngx.var.arg_ip or ngx.var.remote_addr)
+        local res, err = geo.lookup(ctx.request.remote_addr)
         if not res then
             ngx.log(ngx.ERR, 'failed to lookup by ip ,reason:', err)
-            ngx.log(ngx.DEBUG, 'res: ', res)
             return "Unknown"
         end
         return res.country.iso_code or "Unknown"
