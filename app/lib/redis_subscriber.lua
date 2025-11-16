@@ -10,7 +10,7 @@ function _M.new()
         httproute_cache = ngx.shared.httproute_cache,
         tls_crt_cache = ngx.shared.tls_crt_cache,
         tls_key_cache = ngx.shared.tls_key_cache,
-        waf_cache = ngx.shared.waf_cache,
+        waf_rules_cache = ngx.shared.waf_rules_cache,
         running = false
     }
     return setmetatable(self, { __index = _M })
@@ -99,9 +99,9 @@ function _M._run_loop(self)
                     self.tls_crt_cache:set(tlsData.hostname, tlsData.crt)
                     self.tls_key_cache:set(tlsData.hostname, tlsData.key)
                 end
-            elseif channel == "invalidate_waf_cache" then
-                self.waf_cache:delete(key)
-                ngx.log(ngx.INFO, "invalidated waf_cache key: ", key)
+            elseif channel == "invalidate_waf_rules_cache" then
+                self.waf_rules_cache:delete(key)
+                ngx.log(ngx.INFO, "invalidated waf_rules_cache key: ", key)
             end
         end
 
