@@ -43,7 +43,7 @@ function _M._run_loop(self)
     -- Set longer timeout for subscriber
     red:set_timeout(60000) -- 60 seconds for subscriber
 
-    local channels = { "invalidate_gateway_cache", "invalidate_httproute_cache", "new_cert" }
+    local channels = { "invalidate_gateway_cache", "invalidate_httproute_cache", "new_cert", "invalidate_waf_rules_cache" }
     local res, err = red:subscribe(unpack(channels))
     if not res then
         ngx.log(ngx.ERR, "failed to subscribe: ", err)
