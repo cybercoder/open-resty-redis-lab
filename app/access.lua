@@ -120,6 +120,13 @@ ngx.var.custom_host_header = upstream_servers[chosen_server].hostHeader
 ngx.var.custom_scheme = upstream_servers[chosen_server].protocol
 
 -- cache settings
+
+if ngx.var.uri:match("%.m3u8$") then
+    ngx.var.cache_enabled = "off"
+    ngx.log(ngx.INFO, "Cache bypassed for .m3u8:", ngx.var.uri)
+    return
+end
+
 if not route_data.cache then
     ngx.var.cache_enabled = "off"
     return
