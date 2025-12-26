@@ -42,10 +42,11 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "fixedColor": "#ef00e6",
+            "mode": "fixed"
           },
           "custom": {
-            "axisBorderShow": false,
+            "axisBorderShow": true,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -74,7 +75,8 @@
                 "value": 0
               }
             ]
-          }
+          },
+          "unit": "none"
         },
         "overrides": []
       },
@@ -92,7 +94,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [],
+          "calcs": ["last", "median", "min", "max", "first"],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -114,7 +116,7 @@
         {
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "sum(increase(tlscdn_nginx_http_requests_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\"}[$__interval]))",
+          "expr": "sum(increase(tlscdn_nginx_http_requests_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\"}[$__rate_interval]))",
           "instant": false,
           "interval": "1m",
           "legendFormat": "{{label_name}}",
@@ -541,12 +543,12 @@
     ]
   },
   "time": {
-    "from": "now-2d",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "TLSCDN",
   "uid": "add6bf6",
-  "version": 34
+  "version": 35
 }
