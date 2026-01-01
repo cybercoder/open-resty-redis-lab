@@ -37,7 +37,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cf8716wtutedcc"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -94,7 +94,13 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": ["last", "median", "min", "max", "first"],
+          "calcs": [
+            "last",
+            "median",
+            "min",
+            "max",
+            "first"
+          ],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -111,9 +117,13 @@
         "xTickLabelRotation": 0,
         "xTickLabelSpacing": 200
       },
-      "pluginVersion": "12.3.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "editorMode": "builder",
           "exemplar": false,
           "expr": "sum(increase(tlscdn_nginx_http_requests_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\"}[$__rate_interval]))",
@@ -130,7 +140,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cf8716wtutedcc"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -204,9 +214,13 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.3.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "editorMode": "builder",
           "expr": "sum(rate(tlscdn_nginx_http_requests_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\", job=\"tlscdn-openresty\"}[$__rate_interval]))",
           "interval": "1m",
@@ -221,7 +235,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cf8716wtutedcc"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -295,9 +309,13 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.3.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "editorMode": "builder",
           "expr": "sum by(status) (rate(tlscdn_nginx_http_requests_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\", job=\"tlscdn-openresty\"}[$__rate_interval]))",
           "interval": "1m",
@@ -325,7 +343,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cf8716wtutedcc"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -403,11 +421,15 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.3.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
-          "editorMode": "builder",
-          "expr": "(sum(rate(tlscdn_nginx_http_cache_status_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\", job=\"tlscdn-openresty\", status=\"HIT\"}[$__rate_interval])) * 100) / (sum(rate(tlscdn_nginx_http_cache_status_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\", job=\"tlscdn-openresty\"}[$__rate_interval])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(tlscdn_nginx_http_cache_status_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\", job=\"tlscdn-openresty\", status=\"HIT\"}[$__rate_interval])) * 100) or 0 / (sum(rate(tlscdn_nginx_http_cache_status_total{cdn_namespace=\"$namespace\", cdn_gateway=\"$gateway\", job=\"tlscdn-openresty\"}[$__rate_interval])))",
           "interval": "1m",
           "legendFormat": "{{label_name}}",
           "range": true,
@@ -454,7 +476,9 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -462,7 +486,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.3.0",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -470,7 +494,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "100 *\nsum(\n  rate(\n    tlscdn_nginx_http_cache_status_total{\n      cdn_namespace=\"$namespace\",\n      cdn_gateway=\"$gateway\",\n      status=\"HIT\"\n    }[$__rate_interval]\n  )\n)\n/\nsum(\n  rate(\n    tlscdn_nginx_http_cache_status_total{\n      cdn_namespace=\"$namespace\",\n      cdn_gateway=\"$gateway\"\n    }[$__rate_interval]\n  )\n)",
+          "expr": "100 *\nsum(\n  rate(\n    tlscdn_nginx_http_cache_status_total{\n      cdn_namespace=\"$namespace\",\n      cdn_gateway=\"$gateway\",\n      status=\"HIT\"\n    }[$__rate_interval]\n  )\n) or 0\n/\nsum(\n  rate(\n    tlscdn_nginx_http_cache_status_total{\n      cdn_namespace=\"$namespace\",\n      cdn_gateway=\"$gateway\"\n    }[$__rate_interval]\n  )\n)",
           "interval": "1m",
           "legendFormat": "__auto",
           "range": true,
@@ -488,8 +512,8 @@
     "list": [
       {
         "current": {
-          "text": "cdn",
-          "value": "cf8716wtutedcc"
+          "text": "Prometheus",
+          "value": "prometheus"
         },
         "label": "Data Source",
         "name": "datasource",
@@ -543,12 +567,12 @@
     ]
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "TLSCDN",
   "uid": "add6bf6",
-  "version": 35
+  "version": 7
 }
