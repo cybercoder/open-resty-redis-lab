@@ -12,7 +12,7 @@ metric_connections = prometheus:gauge(
     "nginx_http_connections", "Number of HTTP connections", { "state", "cdn_namespace", "cdn_gateway" })
 metric_cache_status = prometheus:counter(
     "nginx_http_cache_status_total", "Number of HTTP requests by cache status",
-    { "host", "cache_status", "status", "cdn_namespace", "cdn_gateway" })
+    { "host", "status", "cdn_namespace", "cdn_gateway" })
 metric_dns_queries = prometheus:counter(
     "nginx_dns_queries_total", "Number of DNS queries",
     { "status", "cdn_namespace", "cdn_gateway" })
