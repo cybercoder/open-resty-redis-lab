@@ -16,3 +16,12 @@ metric_latency:observe(tonumber(ngx.var.request_time),
 
 metric_cache_status:inc(1,
     { ngx.var.server_name, cache_status, ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default" })
+
+local bytes_sent = ngx.var.bytes_sent
+local request_length = ngx.var.request_length
+
+metric_upstream_bytes_sent.inc(tonumber(ngx.var.bytes_sent),
+    { ngx.var.server_name, , ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default", cache_status })
+
+metric_upstream_bytes_received.inc(tonumber(ngx.var.request_length),
+    { ngx.var.server_name, , ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default", cache_status })

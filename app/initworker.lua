@@ -16,7 +16,10 @@ metric_cache_status = prometheus:counter(
 metric_dns_queries = prometheus:counter(
     "nginx_dns_queries_total", "Number of DNS queries",
     { "status", "cdn_namespace", "cdn_gateway" })
-
+metric_upstream_bytes_sent = prometheus:counter(
+    "nginx_upstream_bytes_sent", "Bytes sent by upstream.",{"host","cdn_namespace","cdn_gateway","cache_status"})
+metric_upstream_bytes_received = prometheus:counter(
+    "nginx_upstream_bytes_received", "Bytes received by upstream.",{"host","cdn_namespace","cdn_gateway","cache_status"})
 
 -- Initialize DNS resolver once per worker
 -- local dns = require "/app/lib/dns"
