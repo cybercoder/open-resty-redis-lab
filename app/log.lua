@@ -22,3 +22,5 @@ metric_http_bytes_sent:inc(tonumber(ngx.var.bytes_sent) or 0,
 
 metric_http_bytes_received:inc(tonumber(ngx.var.request_length) or 0,
     { ngx.var.server_name, ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default", cache_status })
+
+ngx.log(ngx.INFO, "amirhosein:", ngx.var.host, ngx.var.uri, "Cache Status: ", cache_status)
