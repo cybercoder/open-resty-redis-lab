@@ -21,6 +21,7 @@ services:
       - ./app:/app
       - ./cache:/disk-cache
       - ./maxminddb:/maxminddb
+      - ./tls:/app/tls/
     environment:
       - DNS_SERVERS=8.8.4.4,8.8.8.8
       - REDIS_PASSWORD=

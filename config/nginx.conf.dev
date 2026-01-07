@@ -1,5 +1,8 @@
 worker_processes 1;
-events { worker_connections 1024; }
+events {
+    worker_connections 512;
+    use epoll;
+}
 
 env DNS_SERVERS;
 env DNS_RETRANS;
@@ -7,9 +10,16 @@ env DNS_TIMEOUT;
 env REDIS_HOST;
 env REDIS_PASSWORD;
 env REDIS_DB;
+env WAF_ENDPOINT;
 
 http {
-    lua_shared_dict prometheus_metrics 30M;
+
+    map $uri $cache_uri {
+        ~^/90live/token/[^/]+/\d+/(.*)$ /90live/$1;
+        default $uri;
+    }
+
+    lua_shared_dict prometheus_metrics 64m;
     init_worker_by_lua_file /app/initworker.lua;
     log_by_lua_file /app/log.lua;
 
@@ -18,28 +28,40 @@ http {
         balancer_by_lua_file /app/lb.lua;
     }
     error_log /dev/stderr debug;
-    resolver 127.0.0.11:53 ipv6=off;
+    resolver 10.43.0.10:53 ipv6=off;
 
-    lua_shared_dict dns_cache 10m;
-    lua_shared_dict gateway_cache 10m;
-    lua_shared_dict httproute_cache 10m;
-    lua_shared_dict tls_crt_cache 10m;
-    lua_shared_dict tls_key_cache 10m;
-    lua_shared_dict waf_rules_cache 10m;
+    lua_shared_dict dns_cache 20m;
+    lua_shared_dict gateway_cache 20m;
+    lua_shared_dict httproute_cache 20m;
+    lua_shared_dict tls_crt_cache 20m;
+    lua_shared_dict tls_key_cache 20m;
+    lua_shared_dict waf_rules_cache 20m;
 
     server_tokens off;
     more_clear_headers Server;
-    more_set_headers 'CDN: tlscdn.ir';
+    more_set_headers 'CDN: novincdn.ir';
+    more_set_headers 'NODE: ${HOSTNAME}';
 
-    proxy_cache_path /disk-cache levels=1:2 keys_zone=STATIC:100m inactive=7d max_size=10g;
+    proxy_cache_path /disk-cache levels=1:2 keys_zone=STATIC:500m inactive=30m max_size=500g use_temp_path=off;
 
     server {
+        aio threads;
         listen 80;
-        #listen 443 ssl;
+        listen 443 ssl;
+        http2 on;
+        http3 on;
+        http3_hq on;
+        listen 443 quic reuseport;
 
-        #ssl_certificate /app/tls/tls.crt;
-        #ssl_certificate_key /app/tls/tls.key;
-        #ssl_certificate_by_lua_file /app/ssl.lua;
+        ssl_certificate /app/tls/tls.crt;
+        ssl_certificate_key /app/tls/tls.key;
+        ssl_certificate_by_lua_file /app/ssl.lua;
+
+        add_header Alt-Svc 'h3=":443"; ma=2592000; persist=1';
+        add_header QUIC-Status $http3;
+        quic_retry on;
+        ssl_early_data on;
+        quic_gso on;
 
         location / {
             set $custom_host_header $host;
@@ -48,6 +70,27 @@ http {
             access_by_lua_file /app/access.lua;
 
             proxy_cache $cache_enabled;
+            proxy_cache_key "$scheme$proxy_host$cache_uri";
+            proxy_cache_lock on;
+            proxy_cache_lock_timeout 10s;
+            proxy_cache_lock_age 30s;
+
+            slice 0;
+            proxy_cache_valid 200 206 300 301 302  15m;
+
+            proxy_buffering on;
+            proxy_buffers 16 256k;
+            proxy_busy_buffers_size 512k;
+            proxy_max_temp_file_size 0;
+            proxy_request_buffering on;
+            proxy_cache_min_uses 1;
+            proxy_cache_revalidate on;
+            proxy_cache_background_update on;
+
+            proxy_ignore_headers Cache-Control;
+            proxy_ignore_headers Expires;
+            proxy_ignore_headers Set-Cookie;
+            proxy_ignore_headers X-Accel-Expires;
 
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
@@ -74,6 +117,15 @@ http {
                 metric_connections:set(ngx.var.connections_writing, {"writing", ngx.ctx.namespace or "default", ngx.ctx.cdn_gateway or "default"})
                 prometheus:collect()
             }
+        }
+    }
+
+    server {
+        listen 8989;
+        location = /healthz {
+            access_log off;
+            error_log  off;
+            return 200;
         }
     }
 }

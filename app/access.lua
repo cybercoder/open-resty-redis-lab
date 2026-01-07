@@ -33,12 +33,12 @@ ngx.ctx.namespace = gateway_data.namespace or "default"
 ngx.ctx.cdn_gateway = gateway_data.name or "default"
 
 -- WAF
--- if gateway_data.waf_enabled then
-local waf = require "/app/waf/init"
-if not waf.process(red) then
-    return -- Request was blocked
+if gateway_data.waf_enabled then
+    local waf = require "/app/waf/init"
+    if not waf.process(red) then
+        return -- Request was blocked
+    end
 end
--- end
 -- END OF WAF
 ngx.log(ngx.DEBUG, "Accessing route:", host, " path:", path)
 local route = router.findRoute(host, path, red)
