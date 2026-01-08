@@ -7,7 +7,14 @@ function _M.connect()
     local red = redis:new()
     red:set_timeout(utils.getenv("REDIS_TIMEOUT", "1000"))
 
-    local ok, err = red:connect(utils.getenv("REDIS_HOST", "redis"),
+    local redisHostName = os.getenv("REDIS_HOST")
+    if redisHostName == nil or redisHostName == "" then
+        redisHostName = os.getenv("HOSTNAME")
+    end
+
+    ngx.log(ngx.INFO, "Redis host: ", redisHostName)
+
+    local ok, err = red:connect(redisHostName,
         utils.getenv("REDIS_PORT", "6379"))
     if not ok then
         ngx.log(ngx.ERR, "Redis connection failed: ", err)
