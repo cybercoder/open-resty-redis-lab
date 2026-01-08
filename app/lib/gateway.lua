@@ -1,13 +1,13 @@
 local _GATEWAY = {}
 
-function _GATEWAY.find(host, red)
-    if not red then
-        ngx.log(ngx.INFO, "no redis!")
-    end
+function _GATEWAY.findInCache(host)
     local gateway = ngx.shared.gateway_cache:get(host)
-    if not gateway then
-        gateway = red:get(host)
-    end
+    return gateway
+end
+
+function _GATEWAY.findInRedis(host, red)
+    local gateway = red:get(host)
+
     if gateway then
         ngx.shared.gateway_cache:set(host, gateway, 300)
     end

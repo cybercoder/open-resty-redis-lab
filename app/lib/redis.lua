@@ -12,8 +12,6 @@ function _M.connect()
         redisHostName = os.getenv("HOSTNAME")
     end
 
-    ngx.log(ngx.INFO, "Redis host: ", redisHostName)
-
     local ok, err = red:connect(redisHostName,
         utils.getenv("REDIS_PORT", "6379"))
     if not ok then
@@ -35,6 +33,10 @@ function _M.connect()
 end
 
 function _M.close(red)
+    if red == nil then
+        ngx.log(ngx.INFO, "redis connection is nil")
+        return
+    end
     -- Check if connection is in subscribed state
     local subscribed = red:get_reused_times() == -1 -- -1 indicates subscribed state
 

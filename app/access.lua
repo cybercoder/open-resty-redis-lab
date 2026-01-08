@@ -6,12 +6,21 @@ local redis = require "/app/lib/redis"
 local router = require "/app/lib/router"
 local gw = require "/app/lib/gateway"
 
-local red = redis.connect()
+local red = nil
 local host, path = ngx.var.host, ngx.var.uri
 if not red then
     ngx.log(ngx.INFO, "No REDIS")
 end
-local gateway = gw.find(host, red)
+local gateway = gw.findInCache(host)
+if not gateway then
+    red, error = redis.connect()
+    if red == nil then
+        ngx.status = 500
+        ngx.say("Failed to connect to Redis.", error)
+        return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+    end
+    gateway = gw.findInRedis(host, red)
+end
 
 if not gateway then
     redis.close(red)
@@ -41,13 +50,18 @@ if gateway_data.waf_enabled then
 end
 -- END OF WAF
 ngx.log(ngx.DEBUG, "Accessing route:", host, " path:", path)
-local route = router.findRoute(host, path, red)
-
+local route = router.findRouteInCache(host, path)
 if not route or route == ngx.null then
+    if not red then
+        red = redis.connect()
+    end
+    route = router.findRouteInRedis(host, path, red)
     redis.close(red)
-    ngx.status = 404
-    ngx.say("route not found.")
-    return ngx.exit(ngx.HTTP_NOT_FOUND)
+    if not route then
+        ngx.status = 404
+        ngx.say("route not found.")
+        return ngx.exit(ngx.HTTP_NOT_FOUND)
+    end
 end
 
 redis.close(red)

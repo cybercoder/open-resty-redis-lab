@@ -11,7 +11,6 @@ env REDIS_HOST;
 env HOSTNAME;
 env REDIS_PASSWORD;
 env REDIS_DB;
-env WAF_ENDPOINT;
 
 http {
 

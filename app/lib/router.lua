@@ -1,15 +1,17 @@
 local _ROUTER = {}
 
-function _ROUTER.findRoute(host, path, red)
+function _ROUTER.findRouteInCache(host, path)
     local route = _ROUTER._findExactPath(host, path)
     if not route or route == ngx.null then
         route = _ROUTER._findPrefixPath(host, path)
     end
+    return route
+end
+
+function _ROUTER.findRouteInRedis(host, path, red)
+    local route = _ROUTER._findExactPath(host, path, red)
     if not route or route == ngx.null then
-        route = _ROUTER._findExactPath(host, path, red)
-        if not route or route == ngx.null then
-            route = _ROUTER._findPrefixPath(host, path, red)
-        end
+        route = _ROUTER._findPrefixPath(host, path, red)
     end
     return route
 end
