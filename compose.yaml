@@ -25,7 +25,7 @@ services:
     environment:
       - DNS_SERVERS=8.8.4.4,8.8.8.8
       - REDIS_PASSWORD=
-      - REDIS_HOST=redis
+      - REDIS_HOST=192.168.251.11
       - REDIS_TIMEOUT=3000
       - REDIS_PORT=6379
     depends_on:

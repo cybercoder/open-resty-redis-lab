@@ -1,16 +1,17 @@
 worker_processes 1;
 events {
-    worker_connections 512;
+    worker_connections 32;
     use epoll;
 }
 
 env DNS_SERVERS;
 env DNS_RETRANS;
 env DNS_TIMEOUT;
-env REDIS_HOST;
 env HOSTNAME;
-env REDIS_PASSWORD;
+env REDIS_HOST;
 env REDIS_DB;
+env REDIS_PORT;
+env REDIS_PASSWORD;
 
 http {
 
@@ -39,7 +40,7 @@ http {
 
     server_tokens off;
     more_clear_headers Server;
-    more_set_headers 'CDN: novincdn.ir';
+    more_set_headers 'CDN: tlscdn.ir';
     more_set_headers 'NODE: ${HOSTNAME}';
 
     proxy_cache_path /disk-cache levels=1:2 keys_zone=STATIC:500m inactive=30m max_size=500g use_temp_path=off;
@@ -102,8 +103,22 @@ http {
             proxy_ssl_server_name on;
             proxy_pass $custom_scheme://backend;
 
+            proxy_connect_timeout 1s;
+            proxy_send_timeout 1s;
+            proxy_read_timeout 1s;
+
+            proxy_intercept_errors on;
+            error_page 500 501 502 503 504 505 @server_errors;
+
             header_filter_by_lua_file /app/headers.lua;
             add_header X-Cache-Status $upstream_cache_status;
+        }
+
+        location @server_errors {
+            internal;
+            default_type text/html;
+
+            content_by_lua_file /app/error_pages.lua;
         }
     }
 
@@ -128,4 +143,6 @@ http {
             return 200;
         }
     }
+
+
 }

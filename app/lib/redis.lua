@@ -9,7 +9,11 @@ function _M.connect()
 
     local redisHostName = os.getenv("REDIS_HOST")
     if redisHostName == nil or redisHostName == "" then
-        redisHostName = os.getenv("HOSTNAME")
+        local localhostName = os.getenv("HOSTNAME")
+        if not localhostName then
+            return nil, error("HOSTNAME environment variable not set")
+        end
+        redisHostName = os.getenv(localhostName)
     end
 
     local ok, err = red:connect(redisHostName,
