@@ -13,7 +13,7 @@ function _M.connect()
         if not localhostName then
             return nil, error("HOSTNAME environment variable not set")
         end
-        redisHostName = os.getenv(localhostName)
+        redisHostName = os.getenv(localhostName:gsub("-", "_"):upper())
     end
 
     local ok, err = red:connect(redisHostName,
