@@ -41,6 +41,10 @@ end
 ngx.ctx.namespace = gateway_data.namespace or "default"
 ngx.ctx.cdn_gateway = gateway_data.name or "default"
 
+-- Store namespace and cdn_gateway for logs
+ngx.var.namespace = gateway_data.namespace or ""
+ngx.var.cdn_gateway = gateway_data.name or ""
+
 -- WAF
 if gateway_data.waf_enabled then
     local waf = require "/app/waf/init"
