@@ -27,7 +27,7 @@ _M.parameters = {
             ngx.log(ngx.ERR, 'failed to lookup by ip ,reason:', err)
             return "Unknown"
         end
-        return res.country.iso_code or "Unknown"
+        return res.country and res.country.iso_code or "Unknown"
     end,
 
     -- Request

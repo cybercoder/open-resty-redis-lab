@@ -4,17 +4,32 @@ events {
     use epoll;
 }
 
-env DNS_SERVERS;
-env DNS_RETRANS;
-env DNS_TIMEOUT;
-env HOSTNAME;
-env REDIS_HOST;
-env REDIS_DB;
-env REDIS_PORT;
-env REDIS_PASSWORD;
+include /env_vars.conf;
 
 http {
-
+    log_format json_combined escape=json '{'
+        '"namespace":"$namespace",'
+        '"cdn_gateway":"$cdn_gateway",'
+        '"time":"$time_iso8601",'
+        '"remote_addr":"$remote_addr",'
+        '"x_forwarded_for":"$http_x_forwarded_for",'
+        '"request_id":"$request_id",'
+        '"request":"$request",'
+        '"method":"$request_method",'
+        '"uri":"$request_uri",'
+        '"status":$status,'
+        '"bytes_sent":$bytes_sent,'
+        '"request_time":$request_time,'
+        '"upstream_time":"$upstream_response_time",'
+        '"upstream_addr":"$upstream_addr",'
+        '"upstream_cache_status":"$upstream_cache_status",'
+        '"host":"$host",'
+        '"referer":"$http_referer",'
+        '"user_agent":"$http_user_agent",'
+        '"country":"$country",'
+        '"longitude":"$longitude",'
+        '"latitude":"$latitude"'
+    '}';
     map $uri $cache_uri {
         ~^/90live/token/[^/]+/\d+/(.*)$ /90live/$1;
         default $uri;
@@ -63,6 +78,12 @@ http {
         quic_retry on;
         ssl_early_data on;
         quic_gso on;
+
+        set $namespace "";
+        set $cdn_gateway "";
+        set $country "";
+        set $longitude "";
+        set $latitude "";
 
         location / {
             set $custom_host_header $host;
@@ -120,6 +141,10 @@ http {
 
             content_by_lua_file /app/error_pages.lua;
         }
+
+        access_log /dev/stdout json_combined;
+        error_log  /dev/stderr warn;
+
     }
 
     server {

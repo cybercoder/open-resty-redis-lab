@@ -5,6 +5,7 @@ local utils = require "/app/lib/utils"
 local redis = require "/app/lib/redis"
 local router = require "/app/lib/router"
 local gw = require "/app/lib/gateway"
+local geo = require "/app/lib/geo"
 
 local red = nil
 local host, path = ngx.var.host, ngx.var.uri
@@ -37,13 +38,25 @@ if not gateway_data then
     return ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
--- Store namespace and cdn_gateway for metrics
+local ip = ngx.var.remote_addr
+local geo_data, err = geo.lookupAll(ip)
+if err then
+    ngx.log(ngx.ERR, "Failed to lookup geo data for IP:", ip, ", reason:", err)
+end
+
+-- Store namespace, cdn_gateway, country for metrics
 ngx.ctx.namespace = gateway_data.namespace or "default"
 ngx.ctx.cdn_gateway = gateway_data.name or "default"
+ngx.ctx.country = geo_data and geo_data.country and geo_data.country.iso_code or ""
+
 
 -- Store namespace and cdn_gateway for logs
 ngx.var.namespace = gateway_data.namespace or ""
 ngx.var.cdn_gateway = gateway_data.name or ""
+
+ngx.var.country = geo_data and geo_data.country and geo_data.country.iso_code or ""
+ngx.var.longitude = geo_data and geo_data.location and geo_data.location.longitude or ""
+ngx.var.latitude = geo_data and geo_data.location and geo_data.location.latitude or ""
 
 -- WAF
 if gateway_data.waf_enabled then

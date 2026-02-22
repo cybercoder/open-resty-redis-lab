@@ -16,6 +16,15 @@ services:
     container_name: openresty
     ports:
       - "8080:80"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        printenv | awk -F= '{print "env "$1";"}' > /env_vars.conf
+        cat /env_vars.conf
+        echo "after cat."
+        /usr/local/openresty/bin/openresty -g "daemon off;"
+
     volumes:
       - ./config/nginx.conf.dev:/usr/local/openresty/nginx/conf/nginx.conf
       - ./app:/app
@@ -25,7 +34,9 @@ services:
     environment:
       - DNS_SERVERS=8.8.4.4,8.8.8.8
       - REDIS_PASSWORD=
-      - REDIS_HOST=192.168.251.11
+      # - REDIS_HOST=192.168.251.11
+      - HOSTNAME=cybercoders-Mac-mini
+      - CYBERCODERS_MAC_MINI=192.168.251.11
       - REDIS_TIMEOUT=3000
       - REDIS_PORT=6379
     depends_on:
